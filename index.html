@@ -35,7 +35,7 @@ background:linear-gradient(#ff8ac0,#ff4f93);box-shadow:0 6px 0 #c42f6c,0 10px 18
 .err{color:#d81b60;min-height:1.4em;margin:8px 0 0;text-align:center}
 .top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .chip{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px 12px;box-shadow:0 3px 8px #8a4fff1a;font-size:.85rem}
-.dot{width:10px;height:10px;border-radius:50%;background:#43A047;box-shadow:0 0 0 3px #43a04733}.dot.off{background:#FB8C00;box-shadow:0 0 0 3px #fb8c0033;animation:pulse 1s infinite}
+.dot{width:10px;height:10px;border-radius:50%;background:#43A047;box-shadow:0 0 0 3px #43a04733}.dot.gray{background:#b9a9cc;box-shadow:0 0 0 3px #b9a9cc33}.dot.off{background:#FB8C00;box-shadow:0 0 0 3px #fb8c0033;animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.3}}
 #turn{margin:14px 0 10px;padding:10px 22px;border-radius:999px;font-weight:900;font-size:1.05rem;color:#fff;background:#8a6bd6;transition:background .4s}
 #turn.mine{background:linear-gradient(90deg,#43A047,#1E88E5)}#turn.swap{animation:swap .5s}
@@ -118,11 +118,7 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
   <h2>Challenge</h2>
   <p class="sub">Two players. Six colors. One winner.</p>
   <div class="card">
-    <div class="pp">
-      <button class="pc" data-p="Anouar"><span class="av"></span>Anouar</button>
-      <button class="pc" data-p="Lyna"><span class="av"></span>Lyna</button>
-    </div>
-    <input id="name" placeholder="Anouar or Lyna" autocomplete="off" autocapitalize="words" enterkeyhint="go">
+    <input id="name" aria-label="Username" autocomplete="off" autocapitalize="words" enterkeyhint="go">
     <button class="btn" id="enter">Enter</button>
     <p class="err" id="err"></p>
   </div>
@@ -139,6 +135,7 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
     <div class="logo sm"><b style="--c:#E53935">M</b><b style="--c:#FDD835;color:#6a4b00">&amp;</b><b style="--c:#1E88E5">M</b></div>
     <div class="chip" id="who2"></div>
   </div>
+  <div class="chip" id="opp2" style="margin-top:14px"></div>
   <h2 id="setTitle" style="margin:20px 0 2px">Make your stack</h2>
   <p class="sub" id="setSub" style="margin:0 0 6px">Your rival will try to knock it down.</p>
   <div id="choose" class="big2">
@@ -161,6 +158,7 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
     <div class="chip" id="who">–</div>
     <div class="chip"><span class="dot off" id="dot"></span><span id="conn">Connecting</span></div>
   </div>
+  <div class="chip" id="opp" style="margin-top:12px"></div>
   <div id="turn">Loading…</div>
   <div class="card stackcard">
     <div class="lab"><span>YOUR STACK</span><span id="count">20</span></div>
@@ -203,7 +201,7 @@ const FIREBASE_CONFIG = {
 const GAME_ROOM = "anouar-lyna-room";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue, runTransaction, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const COLORS = { red:["🔴","#E53935"], green:["🟢","#43A047"], blue:["🔵","#1E88E5"], yellow:["🟡","#FDD835"], orange:["🟠","#FB8C00"], brown:["🟤","#795548"] };
 const KEYS = Object.keys(COLORS), PLAYERS = ["Anouar","Lyna"], STACK_SIZE = 20;
@@ -257,7 +255,8 @@ async function processMove(color){
   return runTransaction(roomRef, g => {
     if (!g || g.status !== "playing" || g.currentTurn !== me) return;        // undefined = abort
     const st = g.stacks[opp] || [], idx = st.indexOf(color);
-    const removed = idx >= 0 ? idx + 1 : 0;                                  // first match + everything below it
+    let removed = idx + 1;                                                   // 0 when the color is absent
+    if (idx === 0) while (removed < st.length && st[removed] === color) removed++;   // same-color run at the very bottom goes together                                  // first match + everything below it
     g.stacks[opp] = st.slice(removed);                                       // no match → unchanged
     g.lastMove = { player: me, color, removedCount: removed };
     checkWinner(g, me, opp);
@@ -399,6 +398,31 @@ function listenToGame(){
   }, err => showConfigError("Firebase refused access: " + err.message + ". Check your database rules."));
 }
 
+/* ---------- online presence ----------
+   Each player writes true to presence/<room>/<name>; Firebase's onDisconnect() flips it to false
+   automatically when the phone loses connection or the tab closes. */
+let online = {}, presUnsub = null, connUnsub = null, myPresRef = null;
+function renderPresence(){
+  if (!me) return;
+  const o = other(me), on = !!online[o];
+  $("opp").innerHTML = $("opp2").innerHTML = `<span class="dot${on ? "" : " gray"}"></span>${o} is ${on ? "online" : "offline"}`;
+}
+function startPresence(){
+  if (presUnsub) return;
+  presUnsub = onValue(ref(db, "presence/" + GAME_ROOM), s => { online = s.val() || {}; renderPresence(); });
+  connUnsub = onValue(ref(db, ".info/connected"), s => {
+    if (s.val() !== true || !me) return;
+    myPresRef = ref(db, `presence/${GAME_ROOM}/${me}`);
+    onDisconnect(myPresRef).set(false).then(() => set(myPresRef, !document.hidden)).catch(() => {});
+  });
+}
+function stopPresence(){
+  if (presUnsub){ presUnsub(); presUnsub = null; } if (connUnsub){ connUnsub(); connUnsub = null; }
+  if (myPresRef){ onDisconnect(myPresRef).cancel(); set(myPresRef, false).catch(() => {}); myPresRef = null; }
+  online = {};
+}
+document.addEventListener("visibilitychange", () => { if (myPresRef) set(myPresRef, !document.hidden).catch(() => {}); });
+
 /* ---------- login ---------- */
 function loginPlayer(raw){
   const name = PLAYERS.find(p => p.toLowerCase() === String(raw).trim().toLowerCase());
@@ -406,10 +430,10 @@ function loginPlayer(raw){
   me = name; localStorage.setItem("mm_player", name);
   $("who").innerHTML = $("who2").innerHTML = '<span class="av">' + AV[name] + "</span>" + name; $("err").textContent = "";
   $("splashTxt").textContent = `Welcome, ${name}! 🍬`; $("splash").classList.add("on");
-  setTimeout(() => { $("splash").classList.remove("on"); show("game"); listenToGame(); }, 1100);
+  setTimeout(() => { $("splash").classList.remove("on"); show("game"); listenToGame(); startPresence(); renderPresence(); }, 1100);
 }
 function switchPlayer(){
-  localStorage.removeItem("mm_player"); me = null; shown = null; game = null; setupRound = null; introRound = null;
+  localStorage.removeItem("mm_player"); me = null; shown = null; game = null; setupRound = null; introRound = null; stopPresence();
   if (unsub){ unsub(); unsub = null; }
   $("ov").classList.remove("on"); $("name").value = ""; show("login");
 }
@@ -424,8 +448,6 @@ function boot(){
     const b2 = b.cloneNode(true);                                            // palette button for the stack builder
     b2.onclick = () => { if (building.length < STACK_SIZE){ building.push(k); renderBuild(); beep(500, .08); } };
     $("bpal").appendChild(b2); });
-  document.querySelectorAll(".pc").forEach(b => { b.querySelector(".av").innerHTML = AV[b.dataset.p];
-    b.onclick = () => { $("name").value = b.dataset.p; document.querySelectorAll(".pc").forEach(x => x.classList.toggle("sel", x === b)); }; });
   $("optRand").onclick = () => submitStack(generateStack());
   $("optBuild").onclick = () => { renderBuild(); setupView("build"); };
   $("bundo").onclick = () => { building.pop(); renderBuild(); };
