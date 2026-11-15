@@ -49,7 +49,6 @@ background:linear-gradient(#ff8ac0,#ff4f93);box-shadow:0 6px 0 #c42f6c,0 10px 18
 .base:after{content:"bottom";position:absolute;right:-56px;top:-3px;font-size:.7rem;opacity:.6}
 .m{flex:none;width:96px;height:27px;margin-top:-13px;border-radius:50%;position:relative;transform:translateX(var(--x));
 background:radial-gradient(ellipse at 32% 22%,#fffa,transparent 38%),var(--c);box-shadow:inset 0 -5px 7px #0004,0 3px 5px #0003}
-.m:after{content:"m";position:absolute;inset:0;display:grid;place-items:center;font-size:.72rem;font-weight:900;color:#fffc;padding-bottom:4px}
 .m.in{animation:drop .5s backwards cubic-bezier(.3,1.5,.5,1)}.m.out{animation:out .45s forwards}
 @keyframes drop{from{transform:translate(var(--x),-160px);opacity:0}}
 @keyframes out{to{transform:translate(var(--x),44px) scale(.4);opacity:0}}
@@ -77,6 +76,37 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 #splash{position:fixed;inset:0;z-index:7;display:none;place-items:center;font-size:2rem;font-weight:900;text-align:center;background:#fff0f7}
 #splash.on{display:grid;animation:in .3s}
+[hidden]{display:none!important}
+.av{display:block;width:64px;height:64px;border-radius:50%;overflow:hidden;box-shadow:0 5px 12px #0003;border:3px solid #fff;flex:none}.av svg{display:block;width:100%;height:100%}
+.chip .av{width:26px;height:26px;border-width:2px;box-shadow:none}
+.pp{display:flex;gap:12px;width:100%;margin-bottom:14px}
+.pc{flex:1;font:inherit;font-weight:900;font-size:1rem;border:3px solid #e7d6ff;background:#fff;border-radius:22px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink);cursor:pointer;transition:transform .15s,border-color .2s}
+.pc .av{width:76px;height:76px}.pc:active{transform:scale(.94)}.pc.sel{border-color:#ff6fa8;transform:translateY(-3px)}
+.big2{display:grid;gap:14px;width:100%;margin:10px 0}
+.opt{font:inherit;text-align:left;border:0;background:#fff;border-radius:22px;padding:18px;display:flex;gap:14px;align-items:center;box-shadow:0 5px 0 #e0cdf5;color:var(--ink);cursor:pointer;font-weight:900;font-size:1.1rem}
+.opt:active{transform:translateY(4px);box-shadow:none}.opt em{display:block;font-style:normal;font-weight:700;font-size:.8rem;opacity:.65}.opt span{font-size:2.2rem}
+#slots{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0 14px}
+#slots i{aspect-ratio:1;border-radius:50%;border:2px dashed #d9c7f3;display:grid;place-items:center;font-size:.7rem;font-style:normal;color:#0005}
+#slots i.f{border:0;color:#fffb;background:radial-gradient(circle at 30% 22%,#fffa,transparent 38%),var(--c);box-shadow:inset 0 -4px 6px #0004,0 3px 5px #0003;animation:pop .3s}
+#bpal{display:grid;grid-template-columns:repeat(6,1fr);gap:2px}
+#bpal .cb s{width:46px;height:46px}#bpal .cb s:after{font-size:.9rem}#bpal .cb{font-size:.62rem}
+.row{display:flex;gap:8px;width:100%;margin-top:12px}.row .btn{flex:1;text-align:center}
+.btn:disabled{opacity:.45;pointer-events:none}
+#vs{position:fixed;inset:0;z-index:8;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(#3b2250,#ff4f93);overflow:hidden}
+#vs.on{display:flex;animation:in .3s}
+#vs .av{width:112px;height:112px;border-width:5px}
+.vp{display:flex;flex-direction:column;align-items:center;gap:8px;color:#fff;font-size:1.6rem;font-weight:900}
+.vp.l{animation:fromL .8s cubic-bezier(.2,1.2,.4,1) backwards}.vp.r{animation:fromR .8s .2s cubic-bezier(.2,1.2,.4,1) backwards}
+@keyframes fromL{from{transform:translateX(-120vw)}}@keyframes fromR{from{transform:translateX(120vw)}}
+.vsb{font-size:3.6rem;font-weight:900;color:#FDD835;text-shadow:0 4px 0 #c42f6c;animation:pop .6s .9s backwards}
+#vs small{color:#fff;opacity:.85;font-size:1rem;animation:in .5s 1.3s backwards}
+#ov .av{width:104px;height:104px;margin:0 auto 4px;position:relative;overflow:visible}#ov .av svg{border-radius:50%}
+#ov.win .card{background:linear-gradient(#fff3b8,#fff);animation:glow 1.2s infinite alternate}
+@keyframes glow{to{box-shadow:0 0 60px #FDD835}}
+#ov.win .av{animation:hop .6s infinite alternate}@keyframes hop{to{transform:translateY(-14px)}}
+#ov.lose .card{background:linear-gradient(#cfd8e6,#fff)}
+#ov.lose .av{filter:grayscale(1);animation:sad 2s infinite}@keyframes sad{50%{transform:translateY(6px) rotate(-7deg)}}
+.crown{position:absolute;top:-36px;left:50%;transform:translateX(-50%);font-size:2.4rem;z-index:1}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -88,6 +118,10 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
   <h2>Challenge</h2>
   <p class="sub">Two players. Six colors. One winner.</p>
   <div class="card">
+    <div class="pp">
+      <button class="pc" data-p="Anouar"><span class="av"></span>Anouar</button>
+      <button class="pc" data-p="Lyna"><span class="av"></span>Lyna</button>
+    </div>
     <input id="name" placeholder="Anouar or Lyna" autocomplete="off" autocapitalize="words" enterkeyhint="go">
     <button class="btn" id="enter">Enter</button>
     <p class="err" id="err"></p>
@@ -98,6 +132,27 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
   <div class="logo big"><b style="--c:#E53935">!</b></div>
   <h2>Setup needed</h2>
   <div class="card"><p id="cfgmsg"></p></div>
+</section>
+
+<section id="setup" class="screen">
+  <div class="top">
+    <div class="logo sm"><b style="--c:#E53935">M</b><b style="--c:#FDD835;color:#6a4b00">&amp;</b><b style="--c:#1E88E5">M</b></div>
+    <div class="chip" id="who2"></div>
+  </div>
+  <h2 id="setTitle" style="margin:20px 0 2px">Make your stack</h2>
+  <p class="sub" id="setSub" style="margin:0 0 6px">Your rival will try to knock it down.</p>
+  <div id="choose" class="big2">
+    <button class="opt" id="optRand"><span>🎲</span><div>Random stack<em>20 random candies, ready instantly</em></div></button>
+    <button class="opt" id="optBuild"><span>🛠️</span><div>Build my own<em>Choose all 20 candies yourself</em></div></button>
+  </div>
+  <div id="build" class="card" hidden>
+    <div class="lab"><span>Bottom → top</span><span id="bcount">0/20</span></div>
+    <div id="slots"></div>
+    <div id="bpal"></div>
+    <div class="row"><button class="btn ghost" id="bundo">↩ Undo</button><button class="btn ghost" id="bclear">Clear</button><button class="btn ghost" id="bfill">🎲 Fill</button></div>
+    <div class="row"><button class="btn" id="bok" disabled>Ready!</button></div>
+  </div>
+  <div id="ready" class="card" hidden style="text-align:center"><div class="trophy">✅</div><p id="waitTxt2"></p></div>
 </section>
 
 <section id="game" class="screen">
@@ -123,7 +178,8 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
   </div>
 </section>
 
-<div id="ov"><div class="card"><div class="trophy">🏆</div><h2 id="winTxt"></h2><p id="winSub"></p><button class="btn" id="again">Play again</button></div></div>
+<div id="ov"><div class="card"><div class="av" id="winAv"></div><h2 id="winTxt"></h2><p id="winSub"></p><button class="btn" id="again">Play again</button></div></div>
+<div id="vs"><div class="vp l"><div class="av" id="vsA"></div><span>Anouar</span></div><div class="vsb">VS</div><div class="vp r"><div class="av" id="vsB"></div><span>Lyna</span></div><small>Let the challenge begin!</small></div>
 <div id="splash"><div id="splashTxt"></div></div>
 
 <script type="module">
@@ -135,8 +191,7 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
    (databaseURL appears only after you create a Realtime Database:
    Build → Realtime Database → Create database.)
    ============================================================ */
-
-  const FIREBASE_CONFIG = {
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCj5Dgk7neAaWOlkpuhZx2pW6D5aS4v490",
   authDomain: "mm-challenge-d216a.firebaseapp.com",
   databaseURL: "https://mm-challenge-d216a-default-rtdb.firebaseio.com",
@@ -156,8 +211,15 @@ const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const other = n => n === "Anouar" ? "Lyna" : "Anouar";
 const upper = c => c.toUpperCase();
+// Avatars (static inline SVG): a boy for Anouar, a girl for Lyna.
+const FACE = '<circle cx="41" cy="51" r="3" fill="#333"/><circle cx="59" cy="51" r="3" fill="#333"/><path d="M42 60q8 7 16 0" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>';
+const AV = {
+  Anouar: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#bfe3ff"/><path d="M20 100c2-22 14-30 30-30s28 8 30 30z" fill="#1E88E5"/><circle cx="50" cy="48" r="23" fill="#f5c9a0"/><path d="M26 46c-3-22 11-31 25-31s27 9 23 31c-4-9-10-13-16-14-8 5-20 6-32 14z" fill="#3b2a20"/>' + FACE + '</svg>',
+  Lyna: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ffd3e8"/><path d="M18 72C12 32 28 12 50 12s38 20 32 60c-3 14-12 14-12 0H30c0 14-9 14-12 0z" fill="#5a2d1b"/><path d="M24 100c2-20 14-28 26-28s24 8 26 28z" fill="#ff6fa8"/><circle cx="50" cy="50" r="22" fill="#f8d2b0"/><path d="M28 48c8-4 18-12 22-20 6 8 14 16 22 20-2-14-12-26-22-26S30 34 28 48z" fill="#5a2d1b"/>' + FACE + '<path d="M70 24l13-9v19zM70 24l-13-9v19z" fill="#ff2d7a"/></svg>'
+};
 
 let db, roomRef, me = null, game = null, busy = false, unsub = null;
+let building = [], setupRound = null, mode = "choose", introRound = null, sending = false;
 let shown = null, shownRound = null, seq = 0, confettiRound = null, soundOn = false, actx = null;
 
 function show(id){ document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
@@ -178,8 +240,8 @@ function beep(f = 520, d = .12){ if (!soundOn) return; try {
 // A stack is ordered bottom → top (index 0 = bottom).
 function generateStack(){ return Array.from({length: STACK_SIZE}, () => KEYS[Math.floor(Math.random()*KEYS.length)]); }
 function newGame(round){
-  return { status:"playing", currentTurn: PLAYERS[Math.floor(Math.random()*2)], round,
-    stacks:{ Anouar: generateStack(), Lyna: generateStack() }, lastMove:null, winner:null,
+  return { status:"setup", currentTurn: PLAYERS[Math.floor(Math.random()*2)], round,
+    lastMove:null, winner:null,
     createdAt: Date.now(), updatedAt: Date.now() };
 }
 function switchTurn(g){ g.currentTurn = other(g.currentTurn); }
@@ -205,10 +267,48 @@ async function processMove(color){
   });
 }
 
+/* Each player submits their OWN stack (random or hand-built). When both are in, the game starts. */
+async function submitStack(stack){
+  if (sending) return; sending = true;
+  try {
+    await runTransaction(roomRef, g => {
+      if (!g || g.status !== "setup") return;
+      g.stacks = g.stacks || {};
+      if (g.stacks[me]) return;                                              // already submitted
+      g.stacks[me] = stack;
+      if (g.stacks[other(me)]) g.status = "playing";                         // both ready → start
+      g.updatedAt = Date.now();
+      return g;
+    });
+  } catch(e){ alert("Couldn't save your stack. Try again."); }
+  sending = false;
+}
+function setupView(v){
+  mode = v; $("choose").hidden = v !== "choose"; $("build").hidden = v !== "build"; $("ready").hidden = v !== "ready";
+  $("setTitle").hidden = $("setSub").hidden = v === "ready";
+}
+function renderBuild(){
+  const s = $("slots"); s.textContent = "";
+  for (let i = 0; i < STACK_SIZE; i++){ const d = document.createElement("i"); d.textContent = i + 1;
+    if (building[i]){ d.className = "f"; d.style.setProperty("--c", COLORS[building[i]][1]); } s.appendChild(d); }
+  $("bcount").textContent = building.length + "/" + STACK_SIZE; $("bok").disabled = building.length < STACK_SIZE;
+}
+function showSetup(){
+  $("ov").classList.remove("on"); $("vs").classList.remove("on"); show("setup");
+  if (setupRound !== game.round){ setupRound = game.round; building = []; renderBuild(); setupView("choose"); }
+  if (game.stacks && game.stacks[me]){ $("waitTxt2").textContent = `Stack ready! Waiting for ${other(me)}…`; setupView("ready"); }
+  else if (mode === "ready") setupView("choose");
+}
+async function playIntro(){                                                  // "Anouar VS Lyna" entry screen
+  $("vsA").innerHTML = AV.Anouar; $("vsB").innerHTML = AV.Lyna;
+  $("ov").classList.remove("on"); $("vs").classList.add("on"); beep(440, .3);
+  await sleep(2800); $("vs").classList.remove("on");
+}
+
 /* Restart. The round guard means only ONE restart wins if both players tap at once. */
 async function restartGame(needConfirm){
   if (!game) return;
-  if (needConfirm && game.status === "playing" && !confirm("Restart? Both players get new stacks.")) return;
+  if (needConfirm && game.status === "playing" && !confirm("Restart? You will both pick new stacks.")) return;
   const round = game.round || 1;
   await runTransaction(roomRef, g => (g && (g.round || 1) !== round) ? undefined : newGame(round + 1));
 }
@@ -244,6 +344,9 @@ function renderStack(stack, fresh){
 
 async function renderGame(){
   if (!game || !me) return;
+  if (game.status === "setup"){ seq++; showSetup(); return; }
+  if (introRound !== game.round){ introRound = game.round; const id0 = ++seq; await playIntro(); if (id0 !== seq) return; }
+  show("game");
   const id = ++seq, my = (game.stacks && game.stacks[me]) || [];
   const isNew = shown === null || shownRound !== game.round;
   // Candies removed from the bottom fall away, then the stack re-organises.
@@ -274,9 +377,10 @@ async function renderGame(){
 
 function showVictoryScreen(){
   const won = game.winner === me;
-  $("winTxt").textContent = `${game.winner} wins!`;
-  $("winSub").textContent = won ? `You cleared ${other(me)}'s stack! 🎉` : `${game.winner} emptied your stack. Rematch?`;
-  $("ov").classList.add("on");
+  $("ov").className = "on " + (won ? "win" : "lose");
+  $("winAv").innerHTML = (won ? '<span class="crown">👑</span>' : "") + AV[me];
+  $("winTxt").textContent = won ? "You win! 🏆" : "You lost 😢";
+  $("winSub").textContent = won ? `You cleared ${other(me)}'s stack! 🎉` : `${game.winner} emptied your stack. Better luck next time!`;
   if (won && confettiRound !== game.round){ confettiRound = game.round; confetti(); beep(880, .4); }
 }
 function confetti(){
@@ -300,12 +404,12 @@ function loginPlayer(raw){
   const name = PLAYERS.find(p => p.toLowerCase() === String(raw).trim().toLowerCase());
   if (!name){ $("err").textContent = "Only Anouar or Lyna can play. Check the spelling!"; return; }
   me = name; localStorage.setItem("mm_player", name);
-  $("who").textContent = "👤 " + name; $("err").textContent = "";
+  $("who").innerHTML = $("who2").innerHTML = '<span class="av">' + AV[name] + "</span>" + name; $("err").textContent = "";
   $("splashTxt").textContent = `Welcome, ${name}! 🍬`; $("splash").classList.add("on");
   setTimeout(() => { $("splash").classList.remove("on"); show("game"); listenToGame(); }, 1100);
 }
 function switchPlayer(){
-  localStorage.removeItem("mm_player"); me = null; shown = null; game = null;
+  localStorage.removeItem("mm_player"); me = null; shown = null; game = null; setupRound = null; introRound = null;
   if (unsub){ unsub(); unsub = null; }
   $("ov").classList.remove("on"); $("name").value = ""; show("login");
 }
@@ -316,7 +420,18 @@ function boot(){
   KEYS.forEach(k => { const b = document.createElement("button"); b.className = "cb"; b.dataset.c = k;
     b.setAttribute("aria-label", k); b.style.setProperty("--c", COLORS[k][1]);
     b.appendChild(document.createElement("s")); b.appendChild(document.createTextNode(k[0].toUpperCase() + k.slice(1)));
-    b.onclick = () => selectColor(k); $("pick").appendChild(b); });
+    b.onclick = () => selectColor(k); $("pick").appendChild(b);
+    const b2 = b.cloneNode(true);                                            // palette button for the stack builder
+    b2.onclick = () => { if (building.length < STACK_SIZE){ building.push(k); renderBuild(); beep(500, .08); } };
+    $("bpal").appendChild(b2); });
+  document.querySelectorAll(".pc").forEach(b => { b.querySelector(".av").innerHTML = AV[b.dataset.p];
+    b.onclick = () => { $("name").value = b.dataset.p; document.querySelectorAll(".pc").forEach(x => x.classList.toggle("sel", x === b)); }; });
+  $("optRand").onclick = () => submitStack(generateStack());
+  $("optBuild").onclick = () => { renderBuild(); setupView("build"); };
+  $("bundo").onclick = () => { building.pop(); renderBuild(); };
+  $("bclear").onclick = () => { building = []; renderBuild(); };
+  $("bfill").onclick = () => { while (building.length < STACK_SIZE) building.push(KEYS[Math.floor(Math.random()*KEYS.length)]); renderBuild(); };
+  $("bok").onclick = () => submitStack(building.slice());
   $("enter").onclick = () => loginPlayer($("name").value);
   $("name").onkeydown = e => { if (e.key === "Enter") loginPlayer($("name").value); };
   $("switch").onclick = switchPlayer;
