@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ff6fa8">
+<title>M&M Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3b2250}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Nunito,system-ui,sans-serif;font-weight:700;color:var(--ink);min-height:100dvh;overflow-x:hidden;
+background:radial-gradient(circle at 15% 0,#ffd6ec,transparent 45%),radial-gradient(circle at 100% 30%,#cfe8ff,transparent 50%),linear-gradient(#fff8e6,#fff0f7)}
+#bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+#bg i{position:absolute;bottom:-60px;border-radius:50%;opacity:.55;animation:float linear infinite;
+background:radial-gradient(circle at 30% 25%,#fff9,transparent 40%),var(--c);box-shadow:inset 0 -5px 8px #0003}
+@keyframes float{to{transform:translateY(-115vh) rotate(360deg)}}
+.screen{display:none;position:relative;z-index:1;min-height:100dvh;max-width:460px;margin:auto;padding:16px 16px 28px;flex-direction:column;align-items:center}
+.screen.on{display:flex;animation:in .4s ease}
+@keyframes in{from{opacity:0;transform:translateY(16px)}}
+.logo{display:flex;gap:6px;align-items:center;font-weight:900}
+.logo b{display:grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;color:#fff;font-size:inherit;text-shadow:0 2px 0 #0003;
+background:radial-gradient(circle at 30% 25%,#fff8,transparent 40%),var(--c);box-shadow:inset 0 -4px 6px #0003,0 5px 10px #0002}
+.logo.big{font-size:3rem;margin-top:12vh}.logo.big+h2{margin:6px 0 4px;font-size:1.6rem;font-weight:900;letter-spacing:.04em}
+.logo.sm{font-size:1rem}
+.sub{opacity:.7;margin:0 0 26px;text-align:center}
+.card{width:100%;background:#fffd;border-radius:26px;padding:18px;box-shadow:0 10px 30px #8a4fff22}
+input{width:100%;font:inherit;font-size:1.15rem;padding:15px 18px;border-radius:18px;border:3px solid #e7d6ff;outline:0;text-align:center;margin-bottom:12px;background:#fff}
+input:focus{border-color:#ff6fa8}
+.btn{font:inherit;font-weight:900;font-size:1.1rem;border:0;color:#fff;padding:14px 22px;border-radius:999px;cursor:pointer;width:100%;
+background:linear-gradient(#ff8ac0,#ff4f93);box-shadow:0 6px 0 #c42f6c,0 10px 18px #ff4f9344;transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(5px);box-shadow:0 1px 0 #c42f6c}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 4px 0 #e0cdf5;padding:9px 14px;font-size:.85rem;width:auto}
+.btn.ghost:active{box-shadow:0 0 0 #e0cdf5}
+.err{color:#d81b60;min-height:1.4em;margin:8px 0 0;text-align:center}
+.top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px 12px;box-shadow:0 3px 8px #8a4fff1a;font-size:.85rem}
+.dot{width:10px;height:10px;border-radius:50%;background:#43A047;box-shadow:0 0 0 3px #43a04733}.dot.off{background:#FB8C00;box-shadow:0 0 0 3px #fb8c0033;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+#turn{margin:14px 0 10px;padding:10px 22px;border-radius:999px;font-weight:900;font-size:1.05rem;color:#fff;background:#8a6bd6;transition:background .4s}
+#turn.mine{background:linear-gradient(90deg,#43A047,#1E88E5)}#turn.swap{animation:swap .5s}
+@keyframes swap{40%{transform:scale(1.12) rotate(-2deg)}}
+.stackcard{text-align:center;padding-bottom:10px}
+.lab{display:flex;justify-content:space-between;align-items:center;font-weight:900}.lab span:last-child{font-size:1.4rem}
+.bar{height:12px;border-radius:9px;background:#efe4ff;overflow:hidden;margin:8px 0 12px}
+.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#ff6fa8,#FDD835,#43A047);transition:width .6s}
+#stack{display:flex;flex-direction:column-reverse;align-items:center;height:316px;overflow:hidden;padding-bottom:2px}
+.base{height:12px;width:150px;border-radius:9px;background:linear-gradient(#d8c3f5,#b99be8);margin:0 auto;position:relative}
+.base:after{content:"bottom";position:absolute;right:-56px;top:-3px;font-size:.7rem;opacity:.6}
+.m{flex:none;width:96px;height:27px;margin-top:-13px;border-radius:50%;position:relative;transform:translateX(var(--x));
+background:radial-gradient(ellipse at 32% 22%,#fffa,transparent 38%),var(--c);box-shadow:inset 0 -5px 7px #0004,0 3px 5px #0003}
+.m.in{animation:drop .5s backwards cubic-bezier(.3,1.5,.5,1)}.m.out{animation:out .45s forwards}
+@keyframes drop{from{transform:translate(var(--x),-160px);opacity:0}}
+@keyframes out{to{transform:translate(var(--x),44px) scale(.4);opacity:0}}
+#pick{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 8px;width:100%;margin-top:14px}
+#pick[hidden],#wait[hidden]{display:none}
+.cb{font:inherit;font-size:.8rem;font-weight:900;background:none;border:0;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .15s,opacity .2s}
+.cb s{display:block;width:72px;height:72px;border-radius:50%;text-decoration:none;position:relative;
+background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box-shadow:inset 0 -9px 12px #0004,0 8px 14px #0003}
+.cb s:after{content:"m";position:absolute;inset:0;display:grid;place-items:center;font-size:1.4rem;color:#fff9;font-weight:900}
+.cb:hover{transform:translateY(-4px) scale(1.05)}.cb:active{transform:scale(.88)}
+.cb.pop s{animation:pop .5s}@keyframes pop{40%{transform:scale(1.35) rotate(12deg)}100%{transform:scale(1)}}
+#pick.dis .cb{opacity:.4;pointer-events:none}
+#wait{margin-top:18px;text-align:center;font-weight:900}
+#wait span{display:inline-block;width:9px;height:9px;margin:0 2px;border-radius:50%;background:#ff6fa8;animation:bob 1s infinite}
+#wait span:nth-child(2){animation-delay:.15s}#wait span:nth-child(3){animation-delay:.3s}
+@keyframes bob{50%{transform:translateY(-9px)}}
+#msg{min-height:1.5em;margin:12px 0 2px;font-weight:900;text-align:center}
+#last{font-size:.85rem;opacity:.75;text-align:center;min-height:1.3em}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+#ov{position:fixed;inset:0;z-index:5;display:none;place-items:center;background:#3b2250cc;padding:20px}
+#ov.on{display:grid;animation:in .4s}
+#ov .card{text-align:center;max-width:380px}#ov h2{font-size:2.2rem;margin:6px 0}
+.trophy{font-size:4rem;animation:pop 1s}
+.conf{position:fixed;top:-20px;width:10px;height:16px;z-index:6;border-radius:2px;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+#splash{position:fixed;inset:0;z-index:7;display:none;place-items:center;font-size:2rem;font-weight:900;text-align:center;background:#fff0f7}
+#splash.on{display:grid;animation:in .3s}
+[hidden]{display:none!important}
+.av{display:block;width:64px;height:64px;border-radius:50%;overflow:hidden;box-shadow:0 5px 12px #0003;border:3px solid #fff;flex:none}.av svg{display:block;width:100%;height:100%}
+.chip .av{width:26px;height:26px;border-width:2px;box-shadow:none}
+.pp{display:flex;gap:12px;width:100%;margin-bottom:14px}
+.pc{flex:1;font:inherit;font-weight:900;font-size:1rem;border:3px solid #e7d6ff;background:#fff;border-radius:22px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink);cursor:pointer;transition:transform .15s,border-color .2s}
+.pc .av{width:76px;height:76px}.pc:active{transform:scale(.94)}.pc.sel{border-color:#ff6fa8;transform:translateY(-3px)}
+.big2{display:grid;gap:14px;width:100%;margin:10px 0}
+.opt{font:inherit;text-align:left;border:0;background:#fff;border-radius:22px;padding:18px;display:flex;gap:14px;align-items:center;box-shadow:0 5px 0 #e0cdf5;color:var(--ink);cursor:pointer;font-weight:900;font-size:1.1rem}
+.opt:active{transform:translateY(4px);box-shadow:none}.opt em{display:block;font-style:normal;font-weight:700;font-size:.8rem;opacity:.65}.opt span{font-size:2.2rem}
+#slots{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0 14px}
+#slots i{aspect-ratio:1;border-radius:50%;border:2px dashed #d9c7f3;display:grid;place-items:center;font-size:.7rem;font-style:normal;color:#0005}
+#slots i.f{border:0;color:#fffb;background:radial-gradient(circle at 30% 22%,#fffa,transparent 38%),var(--c);box-shadow:inset 0 -4px 6px #0004,0 3px 5px #0003;animation:pop .3s}
+#bpal{display:grid;grid-template-columns:repeat(6,1fr);gap:2px}
+#bpal .cb s{width:46px;height:46px}#bpal .cb s:after{font-size:.9rem}#bpal .cb{font-size:.62rem}
+.row{display:flex;gap:8px;width:100%;margin-top:12px}.row .btn{flex:1;text-align:center}
+.btn:disabled{opacity:.45;pointer-events:none}
+#vs{position:fixed;inset:0;z-index:8;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(#3b2250,#ff4f93);overflow:hidden}
+#vs.on{display:flex;animation:in .3s}
+#vs .av{width:112px;height:112px;border-width:5px}
+.vp{display:flex;flex-direction:column;align-items:center;gap:8px;color:#fff;font-size:1.6rem;font-weight:900}
+.vp.l{animation:fromL .8s cubic-bezier(.2,1.2,.4,1) backwards}.vp.r{animation:fromR .8s .2s cubic-bezier(.2,1.2,.4,1) backwards}
+@keyframes fromL{from{transform:translateX(-120vw)}}@keyframes fromR{from{transform:translateX(120vw)}}
+.vsb{font-size:3.6rem;font-weight:900;color:#FDD835;text-shadow:0 4px 0 #c42f6c;animation:pop .6s .9s backwards}
+#vs small{color:#fff;opacity:.85;font-size:1rem;animation:in .5s 1.3s backwards}
+#ov .av{width:104px;height:104px;margin:0 auto 4px;position:relative;overflow:visible}#ov .av svg{border-radius:50%}
+#ov.win .card{background:linear-gradient(#fff3b8,#fff);animation:glow 1.2s infinite alternate}
+@keyframes glow{to{box-shadow:0 0 60px #FDD835}}
+#ov.win .av{animation:hop .6s infinite alternate}@keyframes hop{to{transform:translateY(-14px)}}
+#ov.lose .card{background:linear-gradient(#cfd8e6,#fff)}
+#ov.lose .av{filter:grayscale(1);animation:sad 2s infinite}@keyframes sad{50%{transform:translateY(6px) rotate(-7deg)}}
+.crown{position:absolute;top:-36px;left:50%;transform:translateX(-50%);font-size:2.4rem;z-index:1}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<section id="login" class="screen on">
+  <div class="logo big"><b style="--c:#E53935">M</b><b style="--c:#FDD835;color:#6a4b00">&amp;</b><b style="--c:#1E88E5">M</b></div>
+  <h2>Challenge</h2>
+  <p class="sub">Two players. Six colors. One winner.</p>
+  <div class="card">
+    <div class="pp">
+      <button class="pc" data-p="Anouar"><span class="av"></span>Anouar</button>
+      <button class="pc" data-p="Lyna"><span class="av"></span>Lyna</button>
+    </div>
+    <input id="name" placeholder="Anouar or Lyna" autocomplete="off" autocapitalize="words" enterkeyhint="go">
+    <button class="btn" id="enter">Enter</button>
+    <p class="err" id="err"></p>
+  </div>
+</section>
+
+<section id="cfg" class="screen">
+  <div class="logo big"><b style="--c:#E53935">!</b></div>
+  <h2>Setup needed</h2>
+  <div class="card"><p id="cfgmsg"></p></div>
+</section>
+
+<section id="setup" class="screen">
+  <div class="top">
+    <div class="logo sm"><b style="--c:#E53935">M</b><b style="--c:#FDD835;color:#6a4b00">&amp;</b><b style="--c:#1E88E5">M</b></div>
+    <div class="chip" id="who2"></div>
+  </div>
+  <h2 id="setTitle" style="margin:20px 0 2px">Make your stack</h2>
+  <p class="sub" id="setSub" style="margin:0 0 6px">Your rival will try to knock it down.</p>
+  <div id="choose" class="big2">
+    <button class="opt" id="optRand"><span>🎲</span><div>Random stack<em>20 random candies, ready instantly</em></div></button>
+    <button class="opt" id="optBuild"><span>🛠️</span><div>Build my own<em>Choose all 20 candies yourself</em></div></button>
+  </div>
+  <div id="build" class="card" hidden>
+    <div class="lab"><span>Bottom → top</span><span id="bcount">0/20</span></div>
+    <div id="slots"></div>
+    <div id="bpal"></div>
+    <div class="row"><button class="btn ghost" id="bundo">↩ Undo</button><button class="btn ghost" id="bclear">Clear</button><button class="btn ghost" id="bfill">🎲 Fill</button></div>
+    <div class="row"><button class="btn" id="bok" disabled>Ready!</button></div>
+  </div>
+  <div id="ready" class="card" hidden style="text-align:center"><div class="trophy">✅</div><p id="waitTxt2"></p></div>
+</section>
+
+<section id="game" class="screen">
+  <div class="top">
+    <div class="logo sm"><b style="--c:#E53935">M</b><b style="--c:#FDD835;color:#6a4b00">&amp;</b><b style="--c:#1E88E5">M</b></div>
+    <div class="chip" id="who">–</div>
+    <div class="chip"><span class="dot off" id="dot"></span><span id="conn">Connecting</span></div>
+  </div>
+  <div id="turn">Loading…</div>
+  <div class="card stackcard">
+    <div class="lab"><span>YOUR STACK</span><span id="count">20</span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div id="stack"></div><div class="base"></div>
+  </div>
+  <div id="pick" class="dis"></div>
+  <div id="wait" hidden><span></span><span></span><span></span><div id="waitTxt"></div></div>
+  <div id="msg"></div>
+  <div id="last"></div>
+  <div class="ctl">
+    <button class="btn ghost" id="restart">🔄 Restart</button>
+    <button class="btn ghost" id="sound">🔇 Sound off</button>
+    <button class="btn ghost" id="switch">👤 Switch player</button>
+  </div>
+</section>
+
+<div id="ov"><div class="card"><div class="av" id="winAv"></div><h2 id="winTxt"></h2><p id="winSub"></p><button class="btn" id="again">Play again</button></div></div>
+<div id="vs"><div class="vp l"><div class="av" id="vsA"></div><span>Anouar</span></div><div class="vsb">VS</div><div class="vp r"><div class="av" id="vsB"></div><span>Lyna</span></div><small>Let the challenge begin!</small></div>
+<div id="splash"><div id="splashTxt"></div></div>
+
+<script type="module">
+/* ============================================================
+   FIREBASE CONFIG — paste your values here.
+   Firebase Console → open your project → ⚙ Project settings →
+   "General" tab → scroll to "Your apps" → Web app (</>) →
+   copy the values from "firebaseConfig".
+   (databaseURL appears only after you create a Realtime Database:
+   Build → Realtime Database → Create database.)
+   ============================================================ */
+const FIREBASE_CONFIG = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "YOUR_DATABASE_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.firebasestorage.app",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+const GAME_ROOM = "anouar-lyna-room";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const COLORS = { red:["🔴","#E53935"], green:["🟢","#43A047"], blue:["🔵","#1E88E5"], yellow:["🟡","#FDD835"], orange:["🟠","#FB8C00"], brown:["🟤","#795548"] };
+const KEYS = Object.keys(COLORS), PLAYERS = ["Anouar","Lyna"], STACK_SIZE = 20;
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const other = n => n === "Anouar" ? "Lyna" : "Anouar";
+const upper = c => c.toUpperCase();
+// Avatars (static inline SVG): a boy for Anouar, a girl for Lyna.
+const FACE = '<circle cx="41" cy="51" r="3" fill="#333"/><circle cx="59" cy="51" r="3" fill="#333"/><path d="M42 60q8 7 16 0" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>';
+const AV = {
+  Anouar: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#bfe3ff"/><path d="M20 100c2-22 14-30 30-30s28 8 30 30z" fill="#1E88E5"/><circle cx="50" cy="48" r="23" fill="#f5c9a0"/><path d="M26 46c-3-22 11-31 25-31s27 9 23 31c-4-9-10-13-16-14-8 5-20 6-32 14z" fill="#3b2a20"/>' + FACE + '</svg>',
+  Lyna: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ffd3e8"/><path d="M18 72C12 32 28 12 50 12s38 20 32 60c-3 14-12 14-12 0H30c0 14-9 14-12 0z" fill="#5a2d1b"/><path d="M24 100c2-20 14-28 26-28s24 8 26 28z" fill="#ff6fa8"/><circle cx="50" cy="50" r="22" fill="#f8d2b0"/><path d="M28 48c8-4 18-12 22-20 6 8 14 16 22 20-2-14-12-26-22-26S30 34 28 48z" fill="#5a2d1b"/>' + FACE + '<path d="M70 24l13-9v19zM70 24l-13-9v19z" fill="#ff2d7a"/></svg>'
+};
+
+let db, roomRef, me = null, game = null, busy = false, unsub = null;
+let building = [], setupRound = null, mode = "choose", introRound = null, sending = false;
+let shown = null, shownRound = null, seq = 0, confettiRound = null, soundOn = false, actx = null;
+
+function show(id){ document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
+
+/* floating candies (login background) */
+(function(){ for (let i = 0; i < 14; i++){ const e = document.createElement("i"), s = 24 + Math.random()*36;
+  e.style.cssText = `--c:${COLORS[KEYS[i%6]][1]};width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${9+Math.random()*10}s;animation-delay:-${Math.random()*14}s`;
+  $("bg").appendChild(e); } })();
+
+/* optional sound (default OFF) */
+function beep(f = 520, d = .12){ if (!soundOn) return; try {
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f;
+  g.gain.setValueAtTime(.15, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + d);
+  o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch(e){} }
+
+/* ---------- game logic ---------- */
+// A stack is ordered bottom → top (index 0 = bottom).
+function generateStack(){ return Array.from({length: STACK_SIZE}, () => KEYS[Math.floor(Math.random()*KEYS.length)]); }
+function newGame(round){
+  return { status:"setup", currentTurn: PLAYERS[Math.floor(Math.random()*2)], round,
+    lastMove:null, winner:null,
+    createdAt: Date.now(), updatedAt: Date.now() };
+}
+function switchTurn(g){ g.currentTurn = other(g.currentTurn); }
+// The player whose stack is empty loses, so the mover wins.
+function checkWinner(g, mover, opp){ if (!(g.stacks[opp] || []).length){ g.status = "finished"; g.winner = mover; } }
+
+/* Create the game only if the room is empty. The transaction never overwrites an existing game. */
+async function initializeGame(){ await runTransaction(roomRef, cur => cur ? undefined : newGame(1)); }
+
+/* Apply a move atomically; aborts unless it is truly this player's turn. */
+async function processMove(color){
+  const opp = other(me);
+  return runTransaction(roomRef, g => {
+    if (!g || g.status !== "playing" || g.currentTurn !== me) return;        // undefined = abort
+    const st = g.stacks[opp] || [], idx = st.indexOf(color);
+    const removed = idx >= 0 ? idx + 1 : 0;                                  // first match + everything below it
+    g.stacks[opp] = st.slice(removed);                                       // no match → unchanged
+    g.lastMove = { player: me, color, removedCount: removed };
+    checkWinner(g, me, opp);
+    if (g.status === "playing") switchTurn(g);
+    g.updatedAt = Date.now();
+    return g;
+  });
+}
+
+/* Each player submits their OWN stack (random or hand-built). When both are in, the game starts. */
+async function submitStack(stack){
+  if (sending) return; sending = true;
+  try {
+    await runTransaction(roomRef, g => {
+      if (!g || g.status !== "setup") return;
+      g.stacks = g.stacks || {};
+      if (g.stacks[me]) return;                                              // already submitted
+      g.stacks[me] = stack;
+      if (g.stacks[other(me)]) g.status = "playing";                         // both ready → start
+      g.updatedAt = Date.now();
+      return g;
+    });
+  } catch(e){ alert("Couldn't save your stack. Try again."); }
+  sending = false;
+}
+function setupView(v){
+  mode = v; $("choose").hidden = v !== "choose"; $("build").hidden = v !== "build"; $("ready").hidden = v !== "ready";
+  $("setTitle").hidden = $("setSub").hidden = v === "ready";
+}
+function renderBuild(){
+  const s = $("slots"); s.textContent = "";
+  for (let i = 0; i < STACK_SIZE; i++){ const d = document.createElement("i"); d.textContent = i + 1;
+    if (building[i]){ d.className = "f"; d.style.setProperty("--c", COLORS[building[i]][1]); } s.appendChild(d); }
+  $("bcount").textContent = building.length + "/" + STACK_SIZE; $("bok").disabled = building.length < STACK_SIZE;
+}
+function showSetup(){
+  $("ov").classList.remove("on"); $("vs").classList.remove("on"); show("setup");
+  if (setupRound !== game.round){ setupRound = game.round; building = []; renderBuild(); setupView("choose"); }
+  if (game.stacks && game.stacks[me]){ $("waitTxt2").textContent = `Stack ready! Waiting for ${other(me)}…`; setupView("ready"); }
+  else if (mode === "ready") setupView("choose");
+}
+async function playIntro(){                                                  // "Anouar VS Lyna" entry screen
+  $("vsA").innerHTML = AV.Anouar; $("vsB").innerHTML = AV.Lyna;
+  $("ov").classList.remove("on"); $("vs").classList.add("on"); beep(440, .3);
+  await sleep(2800); $("vs").classList.remove("on");
+}
+
+/* Restart. The round guard means only ONE restart wins if both players tap at once. */
+async function restartGame(needConfirm){
+  if (!game) return;
+  if (needConfirm && game.status === "playing" && !confirm("Restart? You will both pick new stacks.")) return;
+  const round = game.round || 1;
+  await runTransaction(roomRef, g => (g && (g.round || 1) !== round) ? undefined : newGame(round + 1));
+}
+
+/* ---------- UI ---------- */
+async function selectColor(color){
+  if (busy || !game || game.status !== "playing" || game.currentTurn !== me) return;
+  busy = true; updateControls();
+  $("pick").querySelector(`[data-c="${color}"]`).classList.add("pop");
+  $("msg").textContent = `You picked ${upper(color)}! ${COLORS[color][0]}`;
+  beep(620);
+  try { await processMove(color); } catch(e){ $("msg").textContent = "Couldn't send your move. Try again."; }
+  await sleep(350);
+  busy = false; updateControls();
+  document.querySelectorAll(".cb.pop").forEach(b => b.classList.remove("pop"));
+}
+
+function updateControls(){
+  const mine = !!game && game.status === "playing" && game.currentTurn === me;
+  $("pick").hidden = !mine; $("pick").classList.toggle("dis", busy);
+  $("wait").hidden = mine || !game || game.status !== "playing";
+  $("waitTxt").textContent = `Waiting for ${other(me)}…`;
+}
+
+function renderStack(stack, fresh){
+  const el = $("stack"); el.textContent = "";
+  stack.forEach((c, i) => { const d = document.createElement("div");
+    d.className = "m" + (fresh ? " in" : ""); d.style.setProperty("--c", COLORS[c][1]);
+    d.style.setProperty("--x", ((i*37) % 11 - 5) + "px"); if (fresh) d.style.animationDelay = i*25 + "ms";
+    el.appendChild(d); });
+  $("count").textContent = stack.length; $("fill").style.width = stack.length / STACK_SIZE * 100 + "%";
+}
+
+async function renderGame(){
+  if (!game || !me) return;
+  if (game.status === "setup"){ seq++; showSetup(); return; }
+  if (introRound !== game.round){ introRound = game.round; const id0 = ++seq; await playIntro(); if (id0 !== seq) return; }
+  show("game");
+  const id = ++seq, my = (game.stacks && game.stacks[me]) || [];
+  const isNew = shown === null || shownRound !== game.round;
+  // Candies removed from the bottom fall away, then the stack re-organises.
+  if (!isNew && my.length < shown.length){
+    [...$("stack").children].slice(0, shown.length - my.length).forEach(e => e.classList.add("out"));
+    beep(260, .25); await sleep(480); if (id !== seq) return;
+  }
+  const fresh = isNew || my.length > shown.length;
+  shown = my.slice(); shownRound = game.round;
+  renderStack(my, fresh);
+
+  const mine = game.currentTurn === me, t = $("turn"), prev = t.dataset.turn;
+  t.textContent = game.status === "finished" ? "Game over" : mine ? "Your turn! 🍬" : `${other(me)}'s turn`;
+  t.className = mine && game.status === "playing" ? "mine" : "";
+  if (prev && prev !== game.currentTurn) t.classList.add("swap");
+  t.dataset.turn = game.currentTurn;
+
+  const lm = game.lastMove;
+  if (lm){ const c = COLORS[lm.color];
+    $("last").textContent = lm.player === me
+      ? `Last: you picked ${c[0]} ${upper(lm.color)} — ${lm.removedCount ? lm.removedCount + " of " + other(me) + "'s candies gone" : "no match"}`
+      : `Last: ${lm.player} picked ${c[0]} ${upper(lm.color)} — ${lm.removedCount ? lm.removedCount + " of yours vanished" : "no match"}`;
+  } else $("last").textContent = "Pick a color to start!";
+  if (!busy && lm && lm.player !== me) $("msg").textContent = "";
+  updateControls();
+  game.status === "finished" ? showVictoryScreen() : $("ov").classList.remove("on");
+}
+
+function showVictoryScreen(){
+  const won = game.winner === me;
+  $("ov").className = "on " + (won ? "win" : "lose");
+  $("winAv").innerHTML = (won ? '<span class="crown">👑</span>' : "") + AV[me];
+  $("winTxt").textContent = won ? "You win! 🏆" : "You lost 😢";
+  $("winSub").textContent = won ? `You cleared ${other(me)}'s stack! 🎉` : `${game.winner} emptied your stack. Better luck next time!`;
+  if (won && confettiRound !== game.round){ confettiRound = game.round; confetti(); beep(880, .4); }
+}
+function confetti(){
+  for (let i = 0; i < 70; i++){ const e = document.createElement("div"); e.className = "conf";
+    e.style.cssText = `left:${Math.random()*100}%;background:${COLORS[KEYS[i%6]][1]};animation-duration:${2+Math.random()*2.5}s;animation-delay:${Math.random()*.8}s`;
+    document.body.appendChild(e); setTimeout(() => e.remove(), 5500); }
+}
+
+/* ---------- realtime sync ---------- */
+function listenToGame(){
+  if (unsub) return;                                                         // never add duplicate listeners
+  unsub = onValue(roomRef, snap => {                                         // fires on every change from either phone
+    game = snap.val();
+    if (!game){ initializeGame(); return; }                                  // empty room → create the game
+    renderGame();
+  }, err => showConfigError("Firebase refused access: " + err.message + ". Check your database rules."));
+}
+
+/* ---------- login ---------- */
+function loginPlayer(raw){
+  const name = PLAYERS.find(p => p.toLowerCase() === String(raw).trim().toLowerCase());
+  if (!name){ $("err").textContent = "Only Anouar or Lyna can play. Check the spelling!"; return; }
+  me = name; localStorage.setItem("mm_player", name);
+  $("who").innerHTML = $("who2").innerHTML = '<span class="av">' + AV[name] + "</span>" + name; $("err").textContent = "";
+  $("splashTxt").textContent = `Welcome, ${name}! 🍬`; $("splash").classList.add("on");
+  setTimeout(() => { $("splash").classList.remove("on"); show("game"); listenToGame(); }, 1100);
+}
+function switchPlayer(){
+  localStorage.removeItem("mm_player"); me = null; shown = null; game = null; setupRound = null; introRound = null;
+  if (unsub){ unsub(); unsub = null; }
+  $("ov").classList.remove("on"); $("name").value = ""; show("login");
+}
+function showConfigError(msg){ $("cfgmsg").textContent = msg; show("cfg"); }
+
+/* ---------- boot ---------- */
+function boot(){
+  KEYS.forEach(k => { const b = document.createElement("button"); b.className = "cb"; b.dataset.c = k;
+    b.setAttribute("aria-label", k); b.style.setProperty("--c", COLORS[k][1]);
+    b.appendChild(document.createElement("s")); b.appendChild(document.createTextNode(k[0].toUpperCase() + k.slice(1)));
+    b.onclick = () => selectColor(k); $("pick").appendChild(b);
+    const b2 = b.cloneNode(true);                                            // palette button for the stack builder
+    b2.onclick = () => { if (building.length < STACK_SIZE){ building.push(k); renderBuild(); beep(500, .08); } };
+    $("bpal").appendChild(b2); });
+  document.querySelectorAll(".pc").forEach(b => { b.querySelector(".av").innerHTML = AV[b.dataset.p];
+    b.onclick = () => { $("name").value = b.dataset.p; document.querySelectorAll(".pc").forEach(x => x.classList.toggle("sel", x === b)); }; });
+  $("optRand").onclick = () => submitStack(generateStack());
+  $("optBuild").onclick = () => { renderBuild(); setupView("build"); };
+  $("bundo").onclick = () => { building.pop(); renderBuild(); };
+  $("bclear").onclick = () => { building = []; renderBuild(); };
+  $("bfill").onclick = () => { while (building.length < STACK_SIZE) building.push(KEYS[Math.floor(Math.random()*KEYS.length)]); renderBuild(); };
+  $("bok").onclick = () => submitStack(building.slice());
+  $("enter").onclick = () => loginPlayer($("name").value);
+  $("name").onkeydown = e => { if (e.key === "Enter") loginPlayer($("name").value); };
+  $("switch").onclick = switchPlayer;
+  $("restart").onclick = () => restartGame(true);
+  $("again").onclick = () => restartGame(false);
+  $("sound").onclick = () => { soundOn = !soundOn; $("sound").textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off"; beep(700); };
+
+  if (Object.values(FIREBASE_CONFIG).some(v => String(v).includes("YOUR_")))
+    return showConfigError("Firebase isn't configured yet. Open index.html and replace the YOUR_… placeholders in FIREBASE_CONFIG with the values from Firebase Console → Project settings → Your apps.");
+  try {
+    db = getDatabase(initializeApp(FIREBASE_CONFIG));
+    roomRef = ref(db, "games/" + GAME_ROOM);
+    onValue(ref(db, ".info/connected"), s => {                               // connection indicator (SDK reconnects automatically)
+      const on = s.val() === true; $("dot").classList.toggle("off", !on); $("conn").textContent = on ? "Connected" : "Reconnecting"; });
+  } catch(e){ return showConfigError("Firebase failed to start: " + e.message); }
+  const saved = localStorage.getItem("mm_player");                           // remember the player across refreshes
+  if (saved) loginPlayer(saved);
+}
+boot();
+</script>
+</body>
+</html>
