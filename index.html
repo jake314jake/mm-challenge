@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ff6fa8">
+<title>M&M Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3b2250}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Nunito,system-ui,sans-serif;font-weight:700;color:var(--ink);min-height:100dvh;overflow-x:hidden;
+background:radial-gradient(circle at 15% 0,#ffd6ec,transparent 45%),radial-gradient(circle at 100% 30%,#cfe8ff,transparent 50%),linear-gradient(#fff8e6,#fff0f7)}
+#bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+#bg i{position:absolute;bottom:-60px;border-radius:50%;opacity:.55;animation:float linear infinite;
+background:radial-gradient(circle at 30% 25%,#fff9,transparent 40%),var(--c);box-shadow:inset 0 -5px 8px #0003}
+@keyframes float{to{transform:translateY(-115vh) rotate(360deg)}}
+.screen{display:none;position:relative;z-index:1;min-height:100dvh;max-width:460px;margin:auto;padding:16px 16px 28px;flex-direction:column;align-items:center}
+.screen.on{display:flex;animation:in .4s ease}
+@keyframes in{from{opacity:0;transform:translateY(16px)}}
+.logo{display:flex;gap:6px;align-items:center;font-weight:900}
+.logo b{display:grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;color:#fff;font-size:inherit;text-shadow:0 2px 0 #0003;
+background:radial-gradient(circle at 30% 25%,#fff8,transparent 40%),var(--c);box-shadow:inset 0 -4px 6px #0003,0 5px 10px #0002}
+.logo.big{font-size:3rem;margin-top:12vh}.logo.big+h2{margin:6px 0 4px;font-size:1.6rem;font-weight:900;letter-spacing:.04em}
+.logo.sm{font-size:1rem}
+.sub{opacity:.7;margin:0 0 26px;text-align:center}
+.card{width:100%;background:#fffd;border-radius:26px;padding:18px;box-shadow:0 10px 30px #8a4fff22}
+input{width:100%;font:inherit;font-size:1.15rem;padding:15px 18px;border-radius:18px;border:3px solid #e7d6ff;outline:0;text-align:center;margin-bottom:12px;background:#fff}
+input:focus{border-color:#ff6fa8}
+.btn{font:inherit;font-weight:900;font-size:1.1rem;border:0;color:#fff;padding:14px 22px;border-radius:999px;cursor:pointer;width:100%;
+background:linear-gradient(#ff8ac0,#ff4f93);box-shadow:0 6px 0 #c42f6c,0 10px 18px #ff4f9344;transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(5px);box-shadow:0 1px 0 #c42f6c}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 4px 0 #e0cdf5;padding:9px 14px;font-size:.85rem;width:auto}
+.btn.ghost:active{box-shadow:0 0 0 #e0cdf5}
+.err{color:#d81b60;min-height:1.4em;margin:8px 0 0;text-align:center}
+.top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px 12px;box-shadow:0 3px 8px #8a4fff1a;font-size:.85rem}
+.dot{width:10px;height:10px;border-radius:50%;background:#43A047;box-shadow:0 0 0 3px #43a04733}.dot.off{background:#FB8C00;box-shadow:0 0 0 3px #fb8c0033;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+#turn{margin:14px 0 10px;padding:10px 22px;border-radius:999px;font-weight:900;font-size:1.05rem;color:#fff;background:#8a6bd6;transition:background .4s}
+#turn.mine{background:linear-gradient(90deg,#43A047,#1E88E5)}#turn.swap{animation:swap .5s}
+@keyframes swap{40%{transform:scale(1.12) rotate(-2deg)}}
+.stackcard{text-align:center;padding-bottom:10px}
+.lab{display:flex;justify-content:space-between;align-items:center;font-weight:900}.lab span:last-child{font-size:1.4rem}
+.bar{height:12px;border-radius:9px;background:#efe4ff;overflow:hidden;margin:8px 0 12px}
+.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#ff6fa8,#FDD835,#43A047);transition:width .6s}
+#stack{display:flex;flex-direction:column-reverse;align-items:center;height:316px;overflow:hidden;padding-bottom:2px}
+.base{height:12px;width:150px;border-radius:9px;background:linear-gradient(#d8c3f5,#b99be8);margin:0 auto;position:relative}
+.base:after{content:"bottom";position:absolute;right:-56px;top:-3px;font-size:.7rem;opacity:.6}
+.m{flex:none;width:96px;height:27px;margin-top:-13px;border-radius:50%;position:relative;transform:translateX(var(--x));
+background:radial-gradient(ellipse at 32% 22%,#fffa,transparent 38%),var(--c);box-shadow:inset 0 -5px 7px #0004,0 3px 5px #0003}
+.m:after{content:"m";position:absolute;inset:0;display:grid;place-items:center;font-size:.72rem;font-weight:900;color:#fffc;padding-bottom:4px}
+.m.in{animation:drop .5s backwards cubic-bezier(.3,1.5,.5,1)}.m.out{animation:out .45s forwards}
+@keyframes drop{from{transform:translate(var(--x),-160px);opacity:0}}
+@keyframes out{to{transform:translate(var(--x),44px) scale(.4);opacity:0}}
+#pick{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 8px;width:100%;margin-top:14px}
+#pick[hidden],#wait[hidden]{display:none}
+.cb{font:inherit;font-size:.8rem;font-weight:900;background:none;border:0;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .15s,opacity .2s}
+.cb s{display:block;width:72px;height:72px;border-radius:50%;text-decoration:none;position:relative;
+background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box-shadow:inset 0 -9px 12px #0004,0 8px 14px #0003}
+.cb s:after{content:"m";position:absolute;inset:0;display:grid;place-items:center;font-size:1.4rem;color:#fff9;font-weight:900}
+.cb:hover{transform:translateY(-4px) scale(1.05)}.cb:active{transform:scale(.88)}
+.cb.pop s{animation:pop .5s}@keyframes pop{40%{transform:scale(1.35) rotate(12deg)}100%{transform:scale(1)}}
+#pick.dis .cb{opacity:.4;pointer-events:none}
+#wait{margin-top:18px;text-align:center;font-weight:900}
+#wait span{display:inline-block;width:9px;height:9px;margin:0 2px;border-radius:50%;background:#ff6fa8;animation:bob 1s infinite}
+#wait span:nth-child(2){animation-delay:.15s}#wait span:nth-child(3){animation-delay:.3s}
+@keyframes bob{50%{transform:translateY(-9px)}}
+#msg{min-height:1.5em;margin:12px 0 2px;font-weight:900;text-align:center}
+#last{font-size:.85rem;opacity:.75;text-align:center;min-height:1.3em}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+#ov{position:fixed;inset:0;z-index:5;display:none;place-items:center;background:#3b2250cc;padding:20px}
+#ov.on{display:grid;animation:in .4s}
+#ov .card{text-align:center;max-width:380px}#ov h2{font-size:2.2rem;margin:6px 0}
+.trophy{font-size:4rem;animation:pop 1s}
+.conf{position:fixed;top:-20px;width:10px;height:16px;z-index:6;border-radius:2px;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+#splash{position:fixed;inset:0;z-index:7;display:none;place-items:center;font-size:2rem;font-weight:900;text-align:center;background:#fff0f7}
+#splash.on{display:grid;animation:in .3s}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<section id="login" class="screen on">
+  <div class="logo big"><b style="--c:#E53935">M</b><b style="--c:#FDD835;color:#6a4b00">&amp;</b><b style="--c:#1E88E5">M</b></div>
+  <h2>Challenge</h2>
+  <p class="sub">Two players. Six colors. One winner.</p>
+  <div class="card">
+    <input id="name" placeholder="Anouar or Lyna" autocomplete="off" autocapitalize="words" enterkeyhint="go">
+    <button class="btn" id="enter">Enter</button>
+    <p class="err" id="err"></p>
+  </div>
+</section>
+
+<section id="cfg" class="screen">
+  <div class="logo big"><b style="--c:#E53935">!</b></div>
+  <h2>Setup needed</h2>
+  <div class="card"><p id="cfgmsg"></p></div>
+</section>
+
+<section id="game" class="screen">
+  <div class="top">
+    <div class="logo sm"><b style="--c:#E53935">M</b><b style="--c:#FDD835;color:#6a4b00">&amp;</b><b style="--c:#1E88E5">M</b></div>
+    <div class="chip" id="who">–</div>
+    <div class="chip"><span class="dot off" id="dot"></span><span id="conn">Connecting</span></div>
+  </div>
+  <div id="turn">Loading…</div>
+  <div class="card stackcard">
+    <div class="lab"><span>YOUR STACK</span><span id="count">20</span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div id="stack"></div><div class="base"></div>
+  </div>
+  <div id="pick" class="dis"></div>
+  <div id="wait" hidden><span></span><span></span><span></span><div id="waitTxt"></div></div>
+  <div id="msg"></div>
+  <div id="last"></div>
+  <div class="ctl">
+    <button class="btn ghost" id="restart">🔄 Restart</button>
+    <button class="btn ghost" id="sound">🔇 Sound off</button>
+    <button class="btn ghost" id="switch">👤 Switch player</button>
+  </div>
+</section>
+
+<div id="ov"><div class="card"><div class="trophy">🏆</div><h2 id="winTxt"></h2><p id="winSub"></p><button class="btn" id="again">Play again</button></div></div>
+<div id="splash"><div id="splashTxt"></div></div>
+
+<script type="module">
+/* ============================================================
+   FIREBASE CONFIG — paste your values here.
+   Firebase Console → open your project → ⚙ Project settings →
+   "General" tab → scroll to "Your apps" → Web app (</>) →
+   copy the values from "firebaseConfig".
+   (databaseURL appears only after you create a Realtime Database:
+   Build → Realtime Database → Create database.)
+   ============================================================ */
+
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCj5Dgk7neAaWOlkpuhZx2pW6D5aS4v490",
+  authDomain: "mm-challenge-d216a.firebaseapp.com",
+  databaseURL: "https://mm-challenge-d216a-default-rtdb.firebaseio.com",
+  projectId: "mm-challenge-d216a",
+  storageBucket: "mm-challenge-d216a.firebasestorage.app",
+  messagingSenderId: "1039409500027",
+  appId: "1:1039409500027:web:099b6ce108f5b09c4ef7de"
+};
+      
+const GAME_ROOM = "anouar-lyna-room";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const COLORS = { red:["🔴","#E53935"], green:["🟢","#43A047"], blue:["🔵","#1E88E5"], yellow:["🟡","#FDD835"], orange:["🟠","#FB8C00"], brown:["🟤","#795548"] };
+const KEYS = Object.keys(COLORS), PLAYERS = ["Anouar","Lyna"], STACK_SIZE = 20;
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const other = n => n === "Anouar" ? "Lyna" : "Anouar";
+const upper = c => c.toUpperCase();
+
+let db, roomRef, me = null, game = null, busy = false, unsub = null;
+let shown = null, shownRound = null, seq = 0, confettiRound = null, soundOn = false, actx = null;
+
+function show(id){ document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
+
+/* floating candies (login background) */
+(function(){ for (let i = 0; i < 14; i++){ const e = document.createElement("i"), s = 24 + Math.random()*36;
+  e.style.cssText = `--c:${COLORS[KEYS[i%6]][1]};width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${9+Math.random()*10}s;animation-delay:-${Math.random()*14}s`;
+  $("bg").appendChild(e); } })();
+
+/* optional sound (default OFF) */
+function beep(f = 520, d = .12){ if (!soundOn) return; try {
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f;
+  g.gain.setValueAtTime(.15, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + d);
+  o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch(e){} }
+
+/* ---------- game logic ---------- */
+// A stack is ordered bottom → top (index 0 = bottom).
+function generateStack(){ return Array.from({length: STACK_SIZE}, () => KEYS[Math.floor(Math.random()*KEYS.length)]); }
+function newGame(round){
+  return { status:"playing", currentTurn: PLAYERS[Math.floor(Math.random()*2)], round,
+    stacks:{ Anouar: generateStack(), Lyna: generateStack() }, lastMove:null, winner:null,
+    createdAt: Date.now(), updatedAt: Date.now() };
+}
+function switchTurn(g){ g.currentTurn = other(g.currentTurn); }
+// The player whose stack is empty loses, so the mover wins.
+function checkWinner(g, mover, opp){ if (!(g.stacks[opp] || []).length){ g.status = "finished"; g.winner = mover; } }
+
+/* Create the game only if the room is empty. The transaction never overwrites an existing game. */
+async function initializeGame(){ await runTransaction(roomRef, cur => cur ? undefined : newGame(1)); }
+
+/* Apply a move atomically; aborts unless it is truly this player's turn. */
+async function processMove(color){
+  const opp = other(me);
+  return runTransaction(roomRef, g => {
+    if (!g || g.status !== "playing" || g.currentTurn !== me) return;        // undefined = abort
+    const st = g.stacks[opp] || [], idx = st.indexOf(color);
+    const removed = idx >= 0 ? idx + 1 : 0;                                  // first match + everything below it
+    g.stacks[opp] = st.slice(removed);                                       // no match → unchanged
+    g.lastMove = { player: me, color, removedCount: removed };
+    checkWinner(g, me, opp);
+    if (g.status === "playing") switchTurn(g);
+    g.updatedAt = Date.now();
+    return g;
+  });
+}
+
+/* Restart. The round guard means only ONE restart wins if both players tap at once. */
+async function restartGame(needConfirm){
+  if (!game) return;
+  if (needConfirm && game.status === "playing" && !confirm("Restart? Both players get new stacks.")) return;
+  const round = game.round || 1;
+  await runTransaction(roomRef, g => (g && (g.round || 1) !== round) ? undefined : newGame(round + 1));
+}
+
+/* ---------- UI ---------- */
+async function selectColor(color){
+  if (busy || !game || game.status !== "playing" || game.currentTurn !== me) return;
+  busy = true; updateControls();
+  $("pick").querySelector(`[data-c="${color}"]`).classList.add("pop");
+  $("msg").textContent = `You picked ${upper(color)}! ${COLORS[color][0]}`;
+  beep(620);
+  try { await processMove(color); } catch(e){ $("msg").textContent = "Couldn't send your move. Try again."; }
+  await sleep(350);
+  busy = false; updateControls();
+  document.querySelectorAll(".cb.pop").forEach(b => b.classList.remove("pop"));
+}
+
+function updateControls(){
+  const mine = !!game && game.status === "playing" && game.currentTurn === me;
+  $("pick").hidden = !mine; $("pick").classList.toggle("dis", busy);
+  $("wait").hidden = mine || !game || game.status !== "playing";
+  $("waitTxt").textContent = `Waiting for ${other(me)}…`;
+}
+
+function renderStack(stack, fresh){
+  const el = $("stack"); el.textContent = "";
+  stack.forEach((c, i) => { const d = document.createElement("div");
+    d.className = "m" + (fresh ? " in" : ""); d.style.setProperty("--c", COLORS[c][1]);
+    d.style.setProperty("--x", ((i*37) % 11 - 5) + "px"); if (fresh) d.style.animationDelay = i*25 + "ms";
+    el.appendChild(d); });
+  $("count").textContent = stack.length; $("fill").style.width = stack.length / STACK_SIZE * 100 + "%";
+}
+
+async function renderGame(){
+  if (!game || !me) return;
+  const id = ++seq, my = (game.stacks && game.stacks[me]) || [];
+  const isNew = shown === null || shownRound !== game.round;
+  // Candies removed from the bottom fall away, then the stack re-organises.
+  if (!isNew && my.length < shown.length){
+    [...$("stack").children].slice(0, shown.length - my.length).forEach(e => e.classList.add("out"));
+    beep(260, .25); await sleep(480); if (id !== seq) return;
+  }
+  const fresh = isNew || my.length > shown.length;
+  shown = my.slice(); shownRound = game.round;
+  renderStack(my, fresh);
+
+  const mine = game.currentTurn === me, t = $("turn"), prev = t.dataset.turn;
+  t.textContent = game.status === "finished" ? "Game over" : mine ? "Your turn! 🍬" : `${other(me)}'s turn`;
+  t.className = mine && game.status === "playing" ? "mine" : "";
+  if (prev && prev !== game.currentTurn) t.classList.add("swap");
+  t.dataset.turn = game.currentTurn;
+
+  const lm = game.lastMove;
+  if (lm){ const c = COLORS[lm.color];
+    $("last").textContent = lm.player === me
+      ? `Last: you picked ${c[0]} ${upper(lm.color)} — ${lm.removedCount ? lm.removedCount + " of " + other(me) + "'s candies gone" : "no match"}`
+      : `Last: ${lm.player} picked ${c[0]} ${upper(lm.color)} — ${lm.removedCount ? lm.removedCount + " of yours vanished" : "no match"}`;
+  } else $("last").textContent = "Pick a color to start!";
+  if (!busy && lm && lm.player !== me) $("msg").textContent = "";
+  updateControls();
+  game.status === "finished" ? showVictoryScreen() : $("ov").classList.remove("on");
+}
+
+function showVictoryScreen(){
+  const won = game.winner === me;
+  $("winTxt").textContent = `${game.winner} wins!`;
+  $("winSub").textContent = won ? `You cleared ${other(me)}'s stack! 🎉` : `${game.winner} emptied your stack. Rematch?`;
+  $("ov").classList.add("on");
+  if (won && confettiRound !== game.round){ confettiRound = game.round; confetti(); beep(880, .4); }
+}
+function confetti(){
+  for (let i = 0; i < 70; i++){ const e = document.createElement("div"); e.className = "conf";
+    e.style.cssText = `left:${Math.random()*100}%;background:${COLORS[KEYS[i%6]][1]};animation-duration:${2+Math.random()*2.5}s;animation-delay:${Math.random()*.8}s`;
+    document.body.appendChild(e); setTimeout(() => e.remove(), 5500); }
+}
+
+/* ---------- realtime sync ---------- */
+function listenToGame(){
+  if (unsub) return;                                                         // never add duplicate listeners
+  unsub = onValue(roomRef, snap => {                                         // fires on every change from either phone
+    game = snap.val();
+    if (!game){ initializeGame(); return; }                                  // empty room → create the game
+    renderGame();
+  }, err => showConfigError("Firebase refused access: " + err.message + ". Check your database rules."));
+}
+
+/* ---------- login ---------- */
+function loginPlayer(raw){
+  const name = PLAYERS.find(p => p.toLowerCase() === String(raw).trim().toLowerCase());
+  if (!name){ $("err").textContent = "Only Anouar or Lyna can play. Check the spelling!"; return; }
+  me = name; localStorage.setItem("mm_player", name);
+  $("who").textContent = "👤 " + name; $("err").textContent = "";
+  $("splashTxt").textContent = `Welcome, ${name}! 🍬`; $("splash").classList.add("on");
+  setTimeout(() => { $("splash").classList.remove("on"); show("game"); listenToGame(); }, 1100);
+}
+function switchPlayer(){
+  localStorage.removeItem("mm_player"); me = null; shown = null; game = null;
+  if (unsub){ unsub(); unsub = null; }
+  $("ov").classList.remove("on"); $("name").value = ""; show("login");
+}
+function showConfigError(msg){ $("cfgmsg").textContent = msg; show("cfg"); }
+
+/* ---------- boot ---------- */
+function boot(){
+  KEYS.forEach(k => { const b = document.createElement("button"); b.className = "cb"; b.dataset.c = k;
+    b.setAttribute("aria-label", k); b.style.setProperty("--c", COLORS[k][1]);
+    b.appendChild(document.createElement("s")); b.appendChild(document.createTextNode(k[0].toUpperCase() + k.slice(1)));
+    b.onclick = () => selectColor(k); $("pick").appendChild(b); });
+  $("enter").onclick = () => loginPlayer($("name").value);
+  $("name").onkeydown = e => { if (e.key === "Enter") loginPlayer($("name").value); };
+  $("switch").onclick = switchPlayer;
+  $("restart").onclick = () => restartGame(true);
+  $("again").onclick = () => restartGame(false);
+  $("sound").onclick = () => { soundOn = !soundOn; $("sound").textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off"; beep(700); };
+
+  if (Object.values(FIREBASE_CONFIG).some(v => String(v).includes("YOUR_")))
+    return showConfigError("Firebase isn't configured yet. Open index.html and replace the YOUR_… placeholders in FIREBASE_CONFIG with the values from Firebase Console → Project settings → Your apps.");
+  try {
+    db = getDatabase(initializeApp(FIREBASE_CONFIG));
+    roomRef = ref(db, "games/" + GAME_ROOM);
+    onValue(ref(db, ".info/
