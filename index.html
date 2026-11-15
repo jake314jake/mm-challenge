@@ -107,6 +107,16 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
 #ov.lose .card{background:linear-gradient(#cfd8e6,#fff)}
 #ov.lose .av{filter:grayscale(1);animation:sad 2s infinite}@keyframes sad{50%{transform:translateY(6px) rotate(-7deg)}}
 .crown{position:absolute;top:-36px;left:50%;transform:translateX(-50%);font-size:2.4rem;z-index:1}
+#react{display:flex;gap:10px;justify-content:center;margin:16px auto 0;padding:8px 12px;border-radius:999px;background:#fffc;box-shadow:0 6px 18px #8a4fff22;transition:opacity .3s}
+#react button{font-size:1.7rem;width:54px;height:54px;border-radius:50%;border:0;background:linear-gradient(#fff,#f3e9ff);box-shadow:0 4px 0 #e0cdf5,0 6px 10px #8a4fff22;cursor:pointer;transition:transform .12s}
+#react button:active{transform:translateY(3px) scale(.88);box-shadow:0 1px 0 #e0cdf5}
+#react.cd{opacity:.55;pointer-events:none}
+.fl{position:fixed;bottom:110px;z-index:9;font-size:2.2rem;pointer-events:none;animation:rise 2.4s ease-out backwards forwards}
+@keyframes rise{0%{transform:translateY(0) scale(.4);opacity:0}15%{opacity:1;transform:translateY(-40px) scale(1.2)}100%{transform:translateY(-60vh) translateX(var(--dx)) rotate(var(--r));opacity:0}}
+.rb{position:fixed;left:50%;top:34%;z-index:9;pointer-events:none;text-align:center;animation:rbp 1.9s forwards}
+.rb b{display:block;font-size:6rem;line-height:1.1;filter:drop-shadow(0 8px 12px #0004)}
+.rb span{display:inline-block;background:#fffe;border-radius:999px;padding:4px 14px;font-size:.9rem;font-weight:900;box-shadow:0 4px 10px #0002}
+@keyframes rbp{0%{transform:translate(-50%,0) scale(.2);opacity:0}18%{transform:translate(-50%,0) scale(1.2);opacity:1}32%{transform:translate(-50%,0) scale(1)}75%{opacity:1}100%{transform:translate(-50%,-50px);opacity:0}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -169,6 +179,7 @@ background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box
   <div id="wait" hidden><span></span><span></span><span></span><div id="waitTxt"></div></div>
   <div id="msg"></div>
   <div id="last"></div>
+  <div id="react"></div>
   <div class="ctl">
     <button class="btn ghost" id="restart">🔄 Restart</button>
     <button class="btn ghost" id="sound">🔇 Sound off</button>
@@ -409,7 +420,7 @@ function renderPresence(){
 }
 function startPresence(){
   if (presUnsub) return;
-  presUnsub = onValue(ref(db, "presence/" + GAME_ROOM), s => { online = s.val() || {}; renderPresence(); });
+  presUnsub = onValue(ref(db, "presence/" + GAME_ROOM), s => { online = s.val() || {}; renderPresence(); handleReaction(); });
   connUnsub = onValue(ref(db, ".info/connected"), s => {
     if (s.val() !== true || !me) return;
     myPresRef = ref(db, `presence/${GAME_ROOM}/${me}`);
@@ -419,9 +430,37 @@ function startPresence(){
 function stopPresence(){
   if (presUnsub){ presUnsub(); presUnsub = null; } if (connUnsub){ connUnsub(); connUnsub = null; }
   if (myPresRef){ onDisconnect(myPresRef).cancel(); set(myPresRef, false).catch(() => {}); myPresRef = null; }
-  online = {};
+  online = {}; lastReact = null;
 }
 document.addEventListener("visibilitychange", () => { if (myPresRef) set(myPresRef, !document.hidden).catch(() => {}); });
+
+/* ---------- emoji reactions ----------
+   A reaction is written to presence/<room>/r_<name> = {e, t}. The other phone sees the new
+   timestamp via the existing presence listener and plays the animation. (No extra DB rules needed.) */
+const EMOJIS = ["👏", "🤯", "✨", "🎳"];
+let lastReact = null, cooling = false;
+function burst(e, who, mine){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  for (let i = 0; i < 7; i++){ const d = document.createElement("div"); d.className = "fl"; d.textContent = e;
+    d.style.cssText = `left:${12 + Math.random()*72}%;animation-delay:${i*110}ms;--dx:${Math.round(Math.random()*90-45)}px;--r:${Math.round(Math.random()*80-40)}deg;font-size:${1.6+Math.random()*1.4}rem`;
+    document.body.appendChild(d); setTimeout(() => d.remove(), 3200); }
+  if (!mine){ const b = document.createElement("div"); b.className = "rb";
+    const big = document.createElement("b"), tag = document.createElement("span");
+    big.textContent = e; tag.textContent = who; b.append(big, tag);
+    document.body.appendChild(b); setTimeout(() => b.remove(), 2000); }
+}
+function sendReaction(e){
+  if (!me || cooling || !myPresRef) return;
+  cooling = true; $("react").classList.add("cd"); setTimeout(() => { cooling = false; $("react").classList.remove("cd"); }, 1200);
+  set(ref(db, `presence/${GAME_ROOM}/r_${me}`), { e, t: Date.now() }).catch(() => {});
+  burst(e, me, true); beep(700, .08);
+}
+function handleReaction(){
+  const r = online["r_" + other(me)];
+  if (lastReact === null){ lastReact = r ? r.t : 0; return; }                // ignore reactions from before we joined
+  if (r && r.t !== lastReact){ lastReact = r.t;
+    if (EMOJIS.includes(r.e) && Date.now() - r.t < 15000){ burst(r.e, other(me), false); beep(900, .1); } }
+}
 
 /* ---------- login ---------- */
 function loginPlayer(raw){
@@ -454,6 +493,8 @@ function boot(){
   $("bclear").onclick = () => { building = []; renderBuild(); };
   $("bfill").onclick = () => { while (building.length < STACK_SIZE) building.push(KEYS[Math.floor(Math.random()*KEYS.length)]); renderBuild(); };
   $("bok").onclick = () => submitStack(building.slice());
+  EMOJIS.forEach(e => { const b = document.createElement("button"); b.textContent = e; b.setAttribute("aria-label", "React " + e);
+    b.onclick = () => sendReaction(e); $("react").appendChild(b); });
   $("enter").onclick = () => loginPlayer($("name").value);
   $("name").onkeydown = e => { if (e.key === "Enter") loginPlayer($("name").value); };
   $("switch").onclick = switchPlayer;
